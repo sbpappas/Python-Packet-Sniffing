@@ -36,6 +36,8 @@ def handle_packet(packet):
         #    logfile.write(log_entry)  # Append to file
 
 def save_to_pcap():
+    print("pcap")
+    print(len(packet_list))
     if packet_list:
         wrpcap(pcap_filename, packet_list)
         print(f"[+] Packets saved to {pcap_filename}")
@@ -51,10 +53,12 @@ def main(interface, verbose_flag=False):
     print(f"[*] Starting packet sniffing on {interface} (Press Ctrl+C to stop)")
     
     try:
-        sniff(iface=interface, prn=handle_packet, store=0)
+        sniff(iface=interface, prn=handle_packet, store=1)
     except KeyboardInterrupt:
-        print("\n[!] Stopping packet sniffer...")
-        save_to_pcap()
+        print("\n[!] Stopping packet sniffer...")        
+    finally:
+        print("[*] Finally block executing.")  # Debug: Is this being reached?
+        save_to_pcap()  # Ensure saving on exit
         sys.exit(0)
 
 # Entry point
