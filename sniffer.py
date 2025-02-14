@@ -36,11 +36,10 @@ def handle_packet(packet):
         #    logfile.write(log_entry)  # Append to file
 
 def save_to_pcap():
-    print("pcap")
-    print(len(packet_list))
+    print(len(packet_list) + " packets captured.")
     if packet_list:
         wrpcap(pcap_filename, packet_list)
-        print(f"[+] Packets saved to {pcap_filename}")
+        print(f"Packets saved to {pcap_filename}") #open with the command: wireshark pcap_filename
 
 # Main function to start packet sniffing
 def main(interface, verbose_flag=False):
