@@ -36,7 +36,7 @@ def handle_packet(packet):
         #    logfile.write(log_entry)  # Append to file
 
 def save_to_pcap():
-    print(len(packet_list) + " packets captured.")
+    print(str(len(packet_list)) + " packets captured.")
     if packet_list:
         wrpcap(pcap_filename, packet_list)
         print(f"Packets saved to {pcap_filename}") #open with the command: wireshark pcap_filename
@@ -53,6 +53,8 @@ def main(interface, verbose_flag=False):
     
     try:
         sniff(iface=interface, prn=handle_packet, store=1)
+        #sniff(iface="en0", prn=lambda pkt: pkt.summary(), store=1) #for capturing all packets (UDP, TCP, ICMP, ARP)
+
     except KeyboardInterrupt:
         print("\n[!] Stopping packet sniffer...")        
     finally:
