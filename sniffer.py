@@ -8,35 +8,64 @@ from datetime import datetime
 
 pcap_filename = "capture.pcap" 
 packet_list = []  # store packets for saving to PCAP for later analysis with wireshark
+verbose = False # just as a default
 
 # Function to handle each packet
 def handle_packet(packet):
     global packet_list
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    log_entry = ""
 
-    if packet.haslayer(IP) and packet.haslayer(TCP):
+    if packet.haslayer(IP):
         src_ip = packet[IP].src
         dst_ip = packet[IP].dst
-        src_port = packet[TCP].sport
-        dst_port = packet[TCP].dport
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        log_entry = f"[{timestamp}] TCP Connection: {src_ip}:{src_port} -> {dst_ip}:{dst_port}\n"
+        if packet.haslayer(TCP):
+            src_port = packet[TCP].sport
+            dst_port = packet[TCP].dport
+            log_entry = f"[{timestamp}] [TCP] {src_ip}:{src_port} -> {dst_ip}:{dst_port}\n"
         
+        elif packet.haslayer(UDP):
+            src_port = packet[UDP].sport
+            dst_port = packet[UDP].dport
+            log_entry = f"[{timestamp}] [UDP] {src_ip}:{src_port} -> {dst_ip}:{dst_port}\n"
+        
+        elif packet.haslayer(ICMP):
+            log_entry = f"[{timestamp}] [ICMP] Ping from {src_ip} to {dst_ip}\n"
+
+    elif packet.haslayer(ARP):
+        src_mac = packet.hwsrc
+        dst_mac = packet.hwdst
+        log_entry = f"[{timestamp}] [ARP] {src_mac} -> {dst_mac} | Who has {packet.pdst}?\n"
+
+    if log_entry:
         if verbose:
             print(log_entry, end="")  # Print to console
         
         with open("sniffer_log.txt", "a") as logfile:
             logfile.write(log_entry)  # Append to file
         
-        # Store packet for PCAP saving
-        packet_list.append(packet)
+        packet_list.append(packet)  # Store packet for PCAP saving
+    # if packet.haslayer(IP) and packet.haslayer(TCP):
+    #     src_ip = packet[IP].src
+    #     dst_ip = packet[IP].dst
+    #     src_port = packet[TCP].sport
+    #     dst_port = packet[TCP].dport
+    #     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        #print(log_entry, end="")  # Print to console
-        #with open("sniffer_log.txt", "a") as logfile:
-        #    logfile.write(log_entry)  # Append to file
+    #     log_entry = f"[{timestamp}] TCP Connection: {src_ip}:{src_port} -> {dst_ip}:{dst_port}\n"
+        
+    #     if verbose:
+    #         print(log_entry, end="")  # Print to console
+        
+    #     with open("sniffer_log.txt", "a") as logfile:
+    #         logfile.write(log_entry)  # Append to file
+        
+    #     # Store packet for PCAP saving
+    #     packet_list.append(packet)
 
 def save_to_pcap():
-    print(str(len(packet_list)) + " packets captured.")
+    print(f"{len(packet_list)} packets captured.")
     if packet_list:
         wrpcap(pcap_filename, packet_list)
         print(f"Packets saved to {pcap_filename}") #open with the command: wireshark pcap_filename
