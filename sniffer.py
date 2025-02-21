@@ -72,7 +72,12 @@ def save_to_pcap():
 
 def analyze_packets(filename: str):
     open(filename)
-    # maybe look at percentage of 
+
+    #capture packets from a certain time period or certain amount of packets?
+    # maybe look at percentage of UDP/TCP/Other
+    # analyze ports to/from, percentages
+    # odd looking ports - security?
+    # repeated attempts on the same things?
 
 # Main function to start packet sniffing
 def main(interface, verbose_flag=False):
