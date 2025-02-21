@@ -70,6 +70,10 @@ def save_to_pcap():
         wrpcap(pcap_filename, packet_list)
         print(f"Packets saved to {pcap_filename}") #open with the command: wireshark pcap_filename
 
+def analyze_packets(filename: str):
+    open(filename)
+    # maybe look at percentage of 
+
 # Main function to start packet sniffing
 def main(interface, verbose_flag=False):
     global verbose
