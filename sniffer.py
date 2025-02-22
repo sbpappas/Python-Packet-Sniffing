@@ -46,23 +46,6 @@ def handle_packet(packet):
             logfile.write(log_entry)  # Append to file
         
         packet_list.append(packet)  # Store packet for PCAP saving
-    # if packet.haslayer(IP) and packet.haslayer(TCP):
-    #     src_ip = packet[IP].src
-    #     dst_ip = packet[IP].dst
-    #     src_port = packet[TCP].sport
-    #     dst_port = packet[TCP].dport
-    #     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-    #     log_entry = f"[{timestamp}] TCP Connection: {src_ip}:{src_port} -> {dst_ip}:{dst_port}\n"
-        
-    #     if verbose:
-    #         print(log_entry, end="")  # Print to console
-        
-    #     with open("sniffer_log.txt", "a") as logfile:
-    #         logfile.write(log_entry)  # Append to file
-        
-    #     # Store packet for PCAP saving
-    #     packet_list.append(packet)
 
 def save_to_pcap():
     print(f"{len(packet_list)} packets captured.")
