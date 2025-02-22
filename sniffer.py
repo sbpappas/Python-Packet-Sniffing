@@ -1,3 +1,5 @@
+'''
+
 import sys
 import os
 from scapy.all import *
@@ -103,10 +105,12 @@ from collections import defaultdict
 # Run with: sudo python3 sniffer.py en0 verbose
 
 pcap_filename = "capture.pcap" 
+recent_sniff_filename = "recent_sniff"
 packet_list = []  # store packets for saving to PCAP
 
 # Track activity
-known_devices = {"192.168.0.1", "192.168.0.101", "192.168.0.102"}  # Modify with your actual known devices
+known_devices = {"192.168.0.1", "192.168.0.101", "192.168.0.100"}  # Modify with your actual known devices
+# 192.168.0.1 is my router, 192.168.0.101 is my iphone, 192.168.0.100 is my laptop
 traffic_count = defaultdict(int)  # Track packet count per device
 failed_attempts = defaultdict(int)  # Track failed connection attempts
 
@@ -151,19 +155,37 @@ def handle_packet(packet):
             
             with open("sniffer_log.txt", "a") as logfile:
                 logfile.write(log_entry)
+            
+            with open("recent_sniff.txt", "a") as recentlogfile:
+                recentlogfile.write(log_entry)
 
             packet_list.append(packet)
 
 # Save packets to PCAP
 def save_to_pcap():
     if packet_list:
+        print(f"\n{len(packet_list)} packets captured.")
         wrpcap(pcap_filename, packet_list)
         print(f"Packets saved to {pcap_filename}")
+
+def clear_file(file_path):
+    """Clears the content of a text file.
+     Args:
+        file_path: The path to the text file.
+    """
+    try:
+        with open(file_path, 'w') as file:
+            file.truncate(0)
+    except FileNotFoundError:
+        print(f"Error: File not found: {file_path}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 # Main function to start packet sniffing
 def main(interface, verbose_flag=False):
     global verbose
     verbose = verbose_flag
+    clear_file("recent_sniff.txt")
     if os.geteuid() != 0:
         print("This script requires root privileges. Run with sudo.")
         sys.exit(1)
@@ -186,4 +208,4 @@ if __name__ == "__main__":
     
     verbose = len(sys.argv) == 3 and sys.argv[2].lower() == "verbose"
     main(sys.argv[1], verbose)
-'''
+#'''
