@@ -39,22 +39,21 @@ def handle_packet(packet):
         src_location = get_geoip_info(src_ip)
         dst_location = get_geoip_info(dst_ip)
 
-        # Detect unauthorized devices
-        if src_ip not in known_devices:
+        
+        if src_ip not in known_devices: #unauthorized devices (not in auth list)
             print(f"[!] Unauthorized device detected: {src_ip}")
 
-        # Detect unusual traffic patterns
-        if traffic_count[src_ip] > 100:  # Adjust threshold as needed
+        if traffic_count[src_ip] > 100:  #a lot of traffic from this src
             print(f"[!] High traffic volume detected from {src_ip}")
 
         if packet.haslayer(TCP):
             src_port = packet[TCP].sport
             dst_port = packet[TCP].dport
 
-            # Detect frequent failed connections (Port Scanning)
+            # frequent failed connections (Port Scanning)
             if packet[TCP].flags == "S":  # SYN packet
                 failed_attempts[src_ip] += 1
-                if failed_attempts[src_ip] > 10:  # Adjust threshold
+                if failed_attempts[src_ip] > 10:  # adjust as needed
                     print(f"[!] Possible port scanning from {src_ip}")
 
             # Detect unusual protocols
@@ -104,6 +103,14 @@ def get_geoip_info(ip):
         return f"{city}, {country}"
     except Exception:
         return "Unknown Location"
+
+def analyze_packets():
+    # break down type of packet
+    # unauthorized ports and how much traffic
+    # sus behavior
+    # other analytics that would be fun
+    packet_list
+
 
 # Main function to start packet sniffing
 def main(interface, verbose_flag=False):
