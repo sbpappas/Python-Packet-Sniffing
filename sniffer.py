@@ -1,13 +1,13 @@
-
 import sys
 import os
 from scapy.all import *
 from datetime import datetime
 from collections import defaultdict
 import geoip2.database
+import time
 
-# Path to the GeoLite2 database
-GEOIP_DB_PATH = "GeoLite2-City_20250221/GeoLite2-City.mmdb"
+
+GEOIP_DB_PATH = "GeoLite2-City_20250221/GeoLite2-City.mmdb" 
 reader = geoip2.database.Reader(GEOIP_DB_PATH)# Load the GeoIP database once (global scope)
 
 # Run with: 
@@ -15,18 +15,22 @@ reader = geoip2.database.Reader(GEOIP_DB_PATH)# Load the GeoIP database once (gl
 # sudo python3 sniffer.py en0 verbose
 
 pcap_filename = "capture.pcap" 
-recent_sniff_filename = "recent_sniff"
+recent_sniff_filename = "recent_sniff" #only most recent run
 packet_list = []  # store packets for saving to PCAP
 
-# Track activity
-known_devices = {"192.168.0.1", "192.168.0.101", "192.168.0.100"}  # Modify with your actual known devices
+known_devices = {"192.168.0.1", "192.168.0.101", "192.168.0.100"} 
 # 192.168.0.1 is my router, 192.168.0.101 is my iphone, 192.168.0.100 is my laptop
-traffic_count = defaultdict(int)  # Track packet count per device
-failed_attempts = defaultdict(int)  # Track failed connection attempts
+traffic_count = defaultdict(int)  # packet count per device
+#ones below are for analysis function
+failed_attempts = defaultdict(int)  # tracks failed connection attempts
+packet_counts = defaultdict(int)
+port_traffic = defaultdict(int)
+top_talkers = defaultdict(int)
+suspicious_activity = defaultdict(int)
+traffic_over_time = []
 
-suspicious_ports = {22, 3389, 5432, 3306}  # SSH, RDP, PostgreSQL, MySQL
+suspicious_ports = {22, 23, 3389, 5432, 3306}  # SSH, Telnet, RDP, PostgreSQL, MySQL
 
-# Function to handle each packet
 def handle_packet(packet):
     global packet_list
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -104,12 +108,61 @@ def get_geoip_info(ip):
     except Exception:
         return "Unknown Location"
 
-def analyze_packets():
-    # break down type of packet
-    # unauthorized ports and how much traffic
-    # sus behavior
-    # other analytics that would be fun
-    packet_list
+def analyze_packets(packet):
+    global traffic_over_time
+
+    # Record timestamp for traffic patterns
+    traffic_over_time.append(time.time())
+
+    # Identify packet type
+    if packet.haslayer(IP):
+        src_ip = packet[IP].src
+        dst_ip = packet[IP].dst
+        top_talkers[src_ip] += 1  # Count packets per IP
+
+        if packet.haslayer(TCP):
+            protocol = "TCP"
+            sport = packet[TCP].sport
+            dport = packet[TCP].dport
+        elif packet.haslayer(UDP):
+            protocol = "UDP"
+            sport = packet[UDP].sport
+            dport = packet[UDP].dport
+        else:
+            protocol = "Other"
+            sport, dport = None, None
+
+        # Track unauthorized ports
+        if dport in SUSPICIOUS_PORTS:
+            port_traffic[dport] += 1
+            suspicious_activity[src_ip] += 1  # Count suspicious connections
+
+        # Detect SYN flood attempts
+        if packet.haslayer(TCP) and packet[TCP].flags == "S":
+            suspicious_activity[src_ip] += 3  # Weight SYN activity higher
+
+        # Store packet type count
+        packet_counts[protocol] += 1
+
+def print_analysis_summary():
+    print("\n[*] Packet Analysis Summary:")
+    print(f"Total Packets Captured: {sum(packet_counts.values())}")
+    
+    print("\nPacket Breakdown:")
+    for protocol, count in packet_counts.items():
+        print(f"  {protocol}: {count}")
+
+    print("\nTop Talkers (Most Active IPs):")
+    for ip, count in sorted(top_talkers.items(), key=lambda x: x[1], reverse=True)[:5]:
+        print(f"  {ip}: {count} packets")
+
+    print("\nSuspicious Activity:")
+    for ip, count in suspicious_activity.items():
+        print(f"  {ip}: {count} suspicious events")
+
+    print("\nUnauthorized Port Traffic:")
+    for port, count in port_traffic.items():
+        print(f"  Port {port}: {count} packets")
 
 
 # Main function to start packet sniffing
