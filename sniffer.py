@@ -7,6 +7,7 @@ import geoip2.database
 import time
 
 
+
 GEOIP_DB_PATH = "GeoLite2-City_20250221/GeoLite2-City.mmdb" 
 reader = geoip2.database.Reader(GEOIP_DB_PATH)# Load the GeoIP database once (global scope)
 
