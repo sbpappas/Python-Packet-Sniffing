@@ -1,0 +1,3 @@
+scapy
+geoip2
+tkinter  # (Optional, built-in for most Python versions)
