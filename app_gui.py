@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import scrolledtext
 from scapy.all import sniff
 import threading
-
+import sniffer
+'''
 class PacketSnifferApp:
     def __init__(self, root):
         self.root = root
@@ -48,4 +49,28 @@ class PacketSnifferApp:
 # Run the GUI
 root = tk.Tk()
 app = PacketSnifferApp(root)
+root.mainloop()
+'''
+
+import tkinter as tk
+import threading
+import sniffer  # Import your sniffer script
+
+def start_sniffer():
+    interface = "en0"  # Change this to your actual network interface
+    verbose = True  # Set to False if you don’t want detailed logs
+    
+    # Run sniffer in a separate thread to prevent freezing the GUI
+    thread = threading.Thread(target=sniffer.main, args=(interface, verbose))
+    thread.daemon = True
+    thread.start()
+
+# Create GUI window
+print("asdf")
+root = tk.Tk()
+root.title("Packet Sniffer")
+
+start_button = tk.Button(root, text="Start Sniffer", command=start_sniffer)
+start_button.pack(pady=20)
+
 root.mainloop()
