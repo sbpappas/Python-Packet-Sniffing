@@ -5,9 +5,8 @@ from datetime import datetime
 from collections import defaultdict
 import geoip2.database
 import time
-
-
-
+import tkinter as tk
+from tkinter import scrolledtext
 
 GEOIP_DB_PATH = "GeoLite2-City_20250221/GeoLite2-City.mmdb" 
 reader = geoip2.database.Reader(GEOIP_DB_PATH)# Load the GeoIP database once (global scope)
@@ -167,24 +166,6 @@ def print_analysis_summary():
         print(f"  Port {port}: {count} packets")
 
 
-#for GUI integration:
-def packet_handler(packet, log_callback=None):
-    """Processes each packet and sends logs to the GUI via callback."""
-    src_ip = packet[0][1].src if packet.haslayer('IP') else "Unknown"
-    dst_ip = packet[0][1].dst if packet.haslayer('IP') else "Unknown"
-    
-    timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
-    log_entry = f"{timestamp} TCP Connection: {src_ip} -> {dst_ip}\n"
-
-    if log_callback:
-        log_callback(log_entry)  # Send log to GUI
-    else:
-        print(log_entry)  # Fallback to console logging
-
-def start_sniffer(interface="en0", log_callback=None):
-    """Starts sniffing on the given interface and sends logs to the GUI."""
-    sniff(iface=interface, prn=lambda packet: packet_handler(packet, log_callback), store=False)
-
 
 # Main function to start packet sniffing
 def main(interface, verbose_flag=False):
@@ -198,12 +179,13 @@ def main(interface, verbose_flag=False):
     reader = geoip2.database.Reader('GeoLite2-City_20250221/GeoLite2-City.mmdb')
     response = reader.city('8.8.8.8')
 
-    print(response.city.name, response.country.name)
+    #print(response.city.name, response.country.name) # just for testing
 
     # Path to your GeoLite2 database file
     GEOIP_DB_PATH = "GeoLite2-City_20250221/GeoLite2-City.mmdb"
 
     print(f"[*] Starting packet sniffing on {interface} (Press Ctrl+C to stop)")
+  
     
     try:
         sniff(iface=interface, prn=handle_packet, store=0)
@@ -225,5 +207,3 @@ if __name__ == "__main__":
 
 
 
-
-#'''
