@@ -10,7 +10,6 @@ class PacketSnifferApp:
         self.root.title("Packet Sniffer")
         self.root.geometry("600x400")
 
-        # Start Button
         self.start_button = tk.Button(root, text="Start Sniffing", command=self.start_sniffing)
         self.start_button.pack()
 
